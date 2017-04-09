@@ -1,6 +1,6 @@
 {
   "name": "classlist-multiple-values",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Use multiple values for `classList.add` and `classList.remove` methods.",
   "main": "dist/index.js",
   "author": "Ivan Nikolić <niksy5@gmail.com> (http://ivannikolic.com)",
