@@ -16,7 +16,7 @@ npm install classlist-multiple-values --save
 const multipleValues = require('classlist-multiple-values');
 const element = document.querySelector('.jackie');
 
-const cl = multipleValues(element);
+const cl = multipleValues(element.classList);
 
 cl.add('henry winnie');
 cl.add(['scooter', 'emma']);
