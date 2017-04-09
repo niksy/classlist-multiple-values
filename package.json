@@ -1,0 +1,59 @@
+{
+  "name": "classlist-multiple-values",
+  "version": "0.0.0",
+  "description": "Use multiple values for `classList.add` and `classList.remove` methods.",
+  "main": "dist/index.js",
+  "author": "Ivan Nikolić <niksy5@gmail.com> (http://ivannikolic.com)",
+  "license": "MIT",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "babel '{index,lib/**/*}.js' --out-dir dist/",
+    "lint": "eslint '{index,test/**/*}.js'",
+    "prepublish": "npm run build",
+    "test": "npm run lint && npm run test:automated",
+    "test:automated": "karma start",
+    "test:automated:local": "karma start --browsers Chrome"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-preset-niksy": "^1.0.0",
+    "babelify": "^7.3.0",
+    "browserify-babel-istanbul": "^0.4.0",
+    "browserify-istanbul": "^2.0.0",
+    "class-list": "^0.1.1",
+    "eslint": "^3.1.1",
+    "eslint-config-niksy": "^3.0.1",
+    "istanbul": "^0.4.3",
+    "karma": "^1.1.0",
+    "karma-browserify": "^5.0.5",
+    "karma-browserstack-launcher": "^1.0.0",
+    "karma-chrome-launcher": "^1.0.1",
+    "karma-coverage": "^1.0.0",
+    "karma-html2js-preprocessor": "^1.0.0",
+    "karma-mocha": "~1.0.1",
+    "karma-mocha-reporter": "^2.0.3",
+    "mocha": "^3.1.2"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "keywords": [
+    "add",
+    "classlist",
+    "dom",
+    "domtokenlist",
+    "multiple",
+    "remove",
+    "values"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niksy/classlist-multiple-values.git"
+  },
+  "bugs": {
+    "url": "https://github.com/niksy/classlist-multiple-values/issues"
+  },
+  "homepage": "https://github.com/niksy/classlist-multiple-values#readme"
+}
