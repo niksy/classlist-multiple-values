@@ -1,51 +1,53 @@
-'use strict';
+/**
+ * @typedef {string[]|string} Values
+ */
 
 /**
- * @param  {String[]|String} values
- *
- * @return {String[]}
+ * @param  {Values} values
  */
-function resolveValues ( values ) {
-
-	if ( Array.isArray(values) ) {
+function resolveValues(values) {
+	if (Array.isArray(values)) {
 		return values;
 	}
-
-	return values.split(' ')
-		.map(( value ) => {
-			return value.trim();
-		})
-		.filter(( value ) => {
-			return value !== '';
-		});
-
+	return values.split(' ').reduce((array, rawValue) => {
+		const value = rawValue.trim();
+		if (value !== '') {
+			array.push(value);
+		}
+		return array;
+	}, /** @type {string[]}*/ ([]));
 }
 
 /**
- * @param  {Object|DOMTokenList} classList
+ * Use multiple values for `classList.add` and `classList.remove` methods.
  *
- * @return {Object}
+ * @param  {DOMTokenList} classList
  */
-module.exports = ( classList ) => {
-
-	if (
-		typeof classList.add === 'undefined' &&
-		typeof classList.remove === 'undefined'
-	) {
-		throw new Error('`add` and `remove` methods are undefined');
+export default function (classList) {
+	if (typeof classList.add === 'undefined' && typeof classList.remove === 'undefined') {
+		throw new TypeError('`add` and `remove` methods are undefined');
 	}
 
 	return {
-		add: ( values ) => {
-			resolveValues(values).forEach(( value ) => {
+		/**
+		 * Array of strings or space-separated string of class values to add to the element.
+		 *
+		 * @param  {Values} values
+		 */
+		add: (values) => {
+			resolveValues(values).forEach((value) => {
 				classList.add(value);
 			});
 		},
-		remove: ( values ) => {
-			resolveValues(values).forEach(( value ) => {
+		/**
+		 * Array of strings or space-separated string of class values to remove from the element.
+		 *
+		 * @param  {Values} values
+		 */
+		remove: (values) => {
+			resolveValues(values).forEach((value) => {
 				classList.remove(value);
 			});
 		}
 	};
-
-};
+}

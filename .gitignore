@@ -1,6 +1,9 @@
 .DS_Store
 node_modules/
+package-lock.json
+yarn.lock
 npm-debug.log
-test-dist/
+local.log
 coverage/
 dist/
+!test/fixtures/node_modules/

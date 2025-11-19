@@ -1,25 +1,20 @@
-'use strict';
-
-const assert = require('assert');
-const classListFactory = require('class-list');
-const fn = require('../index');
-
-let element;
+import assert from 'node:assert';
+import function_ from '../index.js';
 
 before(function () {
+	// @ts-expect-error
 	const fixture = window.__html__['test/fixtures/index.html'];
 	document.body.insertAdjacentHTML('beforeend', `<div id="fixture">${fixture}</div>`);
-	element = document.querySelector('.jackie');
 });
 
 after(function () {
-	document.body.removeChild(document.getElementById('fixture'));
+	document.body.removeChild(/** @type {HTMLDivElement} */ (document.querySelector('#fixture')));
 });
 
 it('should add multiple classes', function () {
-
-	const classList = classListFactory(element);
-	const cl = fn(classList);
+	const element = /** @type {HTMLDivElement} */ (document.querySelector('.jackie'));
+	const classList = element.classList;
+	const cl = function_(classList);
 
 	cl.add('henry winnie');
 	cl.add(['scooter', 'emma']);
@@ -29,13 +24,12 @@ it('should add multiple classes', function () {
 	assert.ok(classList.contains('winnie'));
 	assert.ok(classList.contains('scooter'));
 	assert.ok(classList.contains('emma'));
-
 });
 
 it('should remove multiple classes', function () {
-
-	const classList = classListFactory(element);
-	const cl = fn(classList);
+	const element = /** @type {HTMLDivElement} */ (document.querySelector('.jackie'));
+	const classList = element.classList;
+	const cl = function_(classList);
 
 	cl.remove('henry winnie');
 	cl.remove(['scooter', 'emma']);
@@ -45,18 +39,19 @@ it('should remove multiple classes', function () {
 	assert.ok(!classList.contains('winnie'));
 	assert.ok(!classList.contains('scooter'));
 	assert.ok(!classList.contains('emma'));
-
 });
 
 it('should throw if `add` and `remove` methods are undefined', function () {
-
 	const classList = {};
 
 	assert.throws(
 		() => {
-			fn(classList);
+			// @ts-expect-error
+			function_(classList);
 		},
-		'`add` and `remove` methods are undefined'
+		{
+			name: 'TypeError',
+			message: '`add` and `remove` methods are undefined'
+		}
 	);
-
 });

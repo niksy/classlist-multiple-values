@@ -1,99 +1,143 @@
-/* globals process:false */
-/* eslint-disable no-process-env */
+import path from 'node:path';
+import { defineEnv } from 'unenv';
+// @ts-expect-error
+import istanbul from 'rollup-plugin-istanbul';
+import nycConfig from './nyc.config.js';
+import rolldownConfig from './rolldown.config.js';
 
-'use strict';
+/** @type {import('karma-rolldown-preprocessor')} */
+/** @type {import('karma').ConfigOptions} */
+let config;
 
-module.exports = function ( config ) {
+const isCI = typeof process.env['CI'] !== 'undefined' && process.env['CI'] !== 'false';
+const isPR =
+	typeof process.env['GITHUB_HEAD_REF'] !== 'undefined' && process.env['GITHUB_HEAD_REF'] !== '';
+const local = !isCI || (isCI && isPR);
 
-	config.set({
-		basePath: '',
-		frameworks: ['browserify', 'mocha'],
-		files: [
-			'test/**/*.html',
-			'test/**/*.js'
-		],
-		exclude: [],
-		preprocessors: {
-			'test/**/*.html': ['html2js'],
-			'test/**/*.js': ['browserify']
-		},
-		reporters: ['mocha', 'coverage'],
-		port: 9001,
-		colors: true,
-		logLevel: config.LOG_INFO,
-		autoWatch: false,
+const port = 0;
+
+const { env } = defineEnv({
+	nodeCompat: true
+});
+
+if (local) {
+	config = {
+		browsers: ['Chrome']
+	};
+} else {
+	config = {
+		hostname: 'bs-local.com',
 		browserStack: {
+			username: process.env['BROWSER_STACK_USERNAME'],
+			accessKey: process.env['BROWSER_STACK_ACCESS_KEY'],
 			startTunnel: true,
 			project: 'classlist-multiple-values',
 			name: 'Automated (Karma)',
 			build: 'Automated (Karma)'
 		},
-		client: {
-			captureConsole: true,
-			mocha: {
-				ui: 'bdd'
+		customLaunchers: {
+			'BS-Chrome': {
+				'base': 'BrowserStack',
+				'project': 'classlist-multiple-values',
+				'build': 'Automated (Karma)',
+				'browser': 'Chrome',
+				'browser_version': '80',
+				'name': 'Chrome',
+				'os': 'Windows',
+				'os_version': '7'
+			},
+			'BS-Edge': {
+				'base': 'BrowserStack',
+				'project': 'classlist-multiple-values',
+				'build': 'Automated (Karma)',
+				'browser': 'Edge',
+				'browser_version': '80',
+				'name': 'Edge',
+				'os': 'Windows',
+				'os_version': '10'
+			},
+			'BS-Firefox': {
+				'base': 'BrowserStack',
+				'project': 'classlist-multiple-values',
+				'build': 'Automated (Karma)',
+				'browser': 'Firefox',
+				'browser_version': '72',
+				'name': 'Firefox',
+				'os': 'Windows',
+				'os_version': '7'
 			}
+		},
+		browsers: ['BS-Chrome', 'BS-Edge', 'BS-Firefox']
+	};
+}
+
+/**
+ * @param  {import('karma').Config} baseConfig
+ */
+export default function (baseConfig) {
+	baseConfig.set({
+		basePath: '',
+		frameworks: ['mocha', 'fixture'],
+		files: ['test/**/*.html', { pattern: 'test/**/*.js', watched: false }],
+		exclude: [],
+		preprocessors: {
+			'test/**/*.html': ['html2js'],
+			'test/**/*.js': ['rolldown', 'sourcemap']
+		},
+		reporters: ['coverage', 'mocha'],
+		port: port,
+		colors: true,
+		logLevel: baseConfig.LOG_INFO,
+		autoWatch: false,
+		client: {
+			captureConsole: true
 		},
 		browserConsoleLogOptions: {
 			level: 'log',
 			format: '%b %T: %m',
 			terminal: true
 		},
-		browserify: {
-			debug: true,
-			transform: [
-				'babelify',
-				['browserify-babel-istanbul', { defaultIgnore: true }]
-			]
-		},
-		coverageReporter: {
-			reporters: [
-				{
-					type: 'html'
-				},
-				{
-					type: 'text'
+		rolldownPreprocessor: {
+			// @ts-expect-error
+			transform: {
+				inject: env.inject,
+				target: rolldownConfig[0]?.transform?.target ?? []
+			},
+			resolve: {
+				alias: {
+					...rolldownConfig[0]?.resolve?.alias,
+					...env.alias
 				}
+			},
+			plugins: [
+				istanbul({
+					exclude: ['test/**/*.js', 'node_modules/**/*']
+				}),
+				...(Array.isArray(rolldownConfig[0]?.plugins)
+					? rolldownConfig[0]?.plugins.filter((plugin) => {
+							return !(
+								/** @type {import('rolldown').Plugin[]}*/ (
+									plugin
+								)?.[0]?.name?.includes('rolldown-plugin-dts')
+							);
+						})
+					: [])
 			],
-			check: {
-				global: {
-					statements: 80
-				}
+			output: {
+				format: 'iife',
+				name: 'classlistMultipleValues',
+				sourcemap: 'inline'
 			}
 		},
-		customLaunchers: {
-			'BS-Chrome': {
-				base: 'BrowserStack',
-				browser: 'Chrome',
-				os: 'Windows',
-				'os_version': '7',
-				project: 'classlist-multiple-values',
-				build: 'Automated (Karma)',
-				name: 'Chrome'
-			},
-			'BS-Firefox': {
-				base: 'BrowserStack',
-				browser: 'Firefox',
-				os: 'Windows',
-				'os_version': '7',
-				project: 'classlist-multiple-values',
-				build: 'Automated (Karma)',
-				name: 'Firefox'
-			},
-			'BS-IE9': {
-				base: 'BrowserStack',
-				browser: 'IE',
-				'browser_version': '9',
-				os: 'Windows',
-				'os_version': '7',
-				project: 'classlist-multiple-values',
-				build: 'Automated (Karma)',
-				name: 'IE9'
-			},
+		coverageReporter: {
+			dir: path.join(import.meta.dirname, 'coverage'),
+			reporters: [{ type: 'html' }, { type: 'text' }],
+			check: {
+				global: nycConfig
+			}
 		},
-		browsers: ['BS-Chrome', 'BS-Firefox', 'BS-IE9'],
 		singleRun: true,
-		concurrency: Infinity
+		concurrency: Infinity,
+		...config
 	});
-
-};
+}
